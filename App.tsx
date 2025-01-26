@@ -1,118 +1,171 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Login from './Screens/Login';
+import Home from './Screens/Home';
+import Register from './Screens/Register';
+import Driver_register from './Screens/Driver_register';
+import Customer_register from './Screens/Customer_register';
+import Check_register from './Screens/Check_register';
+import SplashScreen from './Screens/SplashScreen';
+import UserDetails from './Screens/UserDetails';
+import MapScreen from './Screens/MapScreen';
+import UserProfile from './Screens/UserProfile';
+import RelationRequests from './Screens/RelationRequests'
+import ChatList from './Screens/ChatList';
+import ChatScreen from './Screens/ChatScreen';
+import ContactUs from './Screens/ContactUs'
+import { BadgeProvider } from './BadgeContext';
+import { useColorScheme } from 'react-native';
+const Tab = createBottomTabNavigator();
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+const App = () => {
+  const colorScheme = useColorScheme(); // دریافت حالت رنگ سیستم
+  const isDarkMode = colorScheme === 'dark'; 
+  const backgroundColor = isDarkMode? '#1e1e1e' : '#f5f5f5';
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
+  
+    <NavigationContainer style={{backgroundColor:backgroundColor}}>
+        <BadgeProvider>
+      <Tab.Navigator
+        initialRouteName="SplashScreen"
+        screenOptions={{
+          tabBarItemStyle: { padding: 20, backgroundColor: '#34D399' },
+          headerShown: false,
+        }}
+      >
+            <Tab.Screen
+          name="ContactUs"
+          component={ContactUs}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+          <Tab.Screen
+          name="ChatScreen"
+          component={ChatScreen}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+           <Tab.Screen
+          name="ChatList"
+          component={ChatList}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+         <Tab.Screen
+          name="RelationRequests"
+          component={RelationRequests}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+         <Tab.Screen
+          name="UserProfile"
+          component={UserProfile}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+         <Tab.Screen
+          name="MapScreen"
+          component={MapScreen}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="SplashScreen"
+          component={SplashScreen}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+         <Tab.Screen
+          name="UserDetails"
+          component={UserDetails}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+
+        <Tab.Screen
+          name="Register"
+          component={Register}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Driver_register"
+          component={Driver_register}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Customer_register"
+          component={Customer_register}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Check_register"
+          component={Check_register}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Login"
+          component={Login}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+        <Tab.Screen
+          name="Home"
+          component={Home}
+          options={{
+            tabBarShowLabel: false,
+            tabBarButton: () => null,
+            tabBarStyle: { display: 'none' },
+          }}
+        />
+      </Tab.Navigator>
+      </BadgeProvider>
+    </NavigationContainer>
+   
   );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+};
 
 export default App;
+
