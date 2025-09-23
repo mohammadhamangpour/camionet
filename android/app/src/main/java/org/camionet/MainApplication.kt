@@ -1,4 +1,4 @@
-package com.comion
+package org.camionet
 
 import android.app.Application
 import com.facebook.react.PackageList

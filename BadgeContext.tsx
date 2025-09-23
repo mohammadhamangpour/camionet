@@ -18,6 +18,7 @@ export const BadgeProvider: React.FC<{ children: any }> = ({ children }) => {
   const [badgeCount, setBadgeCount] = useState(0);
   const [badgeCount2, setBadgeCount2] = useState(0);
 
+  console.log('im on badg count.')
   const incrementBadge = () => setBadgeCount((prev) => prev + 1);
   const decrementBadge = () => setBadgeCount((prev) => (prev > 0 ? prev - 1 : 0));
   const incrementBadge2 = () => setBadgeCount2((prev) => prev + 1);

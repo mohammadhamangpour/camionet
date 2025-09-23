@@ -2,22 +2,23 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, ScrollView, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView, useColorScheme, Keyboard, BackHandler, ToastAndroid } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { connectWebSocket, sendNotification } from '../utils/Websocket';
 
 export default function ChatScreen({ route, navigation }) {
-  const { userId } = route.params; 
+  const { userId } = route.params;
   const [messages, setMessages] = useState([]);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
-  const [newMessage, setNewMessage] = useState(""); 
-  const [currentUserId, setCurrentUserId] = useState(null); 
-  const scrollViewRef = useRef<ScrollView>(null); 
-  const colorScheme = useColorScheme(); 
-  const [isAtBottom, setIsAtBottom] = useState(true); 
+  const [newMessage, setNewMessage] = useState("");
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const colorScheme = useColorScheme();
+  const [isAtBottom, setIsAtBottom] = useState(true);
   useEffect(() => {
     const backAction = () => {
       navigation.navigate('ChatList'); // هدایت به صفحه Home
-      return true; 
+      return true;
     };
 
     const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
@@ -25,103 +26,141 @@ export default function ChatScreen({ route, navigation }) {
     return () => backHandler.remove(); // حذف لیسنر زمانی که کامپوننت unmount می‌شود
   }, []);
 
-  
-  // دریافت توکن
- useEffect(() => {
-      const fetchToken = async () => {
-        const storedToken = await AsyncStorage.getItem('Token');
-        if (storedToken) {
-          setToken(storedToken);
-        }
-      };
-      fetchToken();
-    }, []) // آرایه وابستگی خالی تا هر بار که به صفحه باز می‌گردید، توکن گرفته شود
- 
-  
-  // دریافت پروفایل کاربر فعلی
- useEffect(() => {
-      const fetchUserProfile = async () => {
-        if (!token) return;
-  
-        try {
-          const response = await fetch('https://camionet.org/v1/get-profile', {
-            method: 'GET',
-            headers: {
-              Accept: '*/*',
-              Authorization: `Bearer ${token}`,
-            },
-          });
-  
-          if (!response.ok) {
-            const errorData = await response.json();
-            //ToastAndroid.show(`HTTP Error: ${response.status} ${errorData}`, ToastAndroid.SHORT);
-         
-            return;
-          }
-  
-          const data = await response.json();
-          setCurrentUserId(data.id); 
-  
-        } catch (error) {
-            ToastAndroid.show(`Error fetching profile user: ${error.message}`, ToastAndroid.SHORT); 
-        }
-      };
-  
-      if (token) {
-        fetchUserProfile();
-      }
-    }, [token]) // وابستگی به token
 
-  
+  // دریافت توکن
+  useEffect(() => {
+    const fetchToken = async () => {
+      const storedToken = await AsyncStorage.getItem('Token');
+      if (storedToken) {
+        setToken(storedToken);
+      }
+    };
+    fetchToken();
+  }, []) // آرایه وابستگی خالی تا هر بار که به صفحه باز می‌گردید، توکن گرفته شود
+
+
+  // دریافت پروفایل کاربر فعلی
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!token) return;
+
+      try {
+        const response = await fetch('https://camionet.org/v1/get-profile', {
+          method: 'GET',
+          headers: {
+            Accept: '*/*',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          //ToastAndroid.show(`HTTP Error: ${response.status} ${errorData}`, ToastAndroid.SHORT);
+
+          return;
+        }
+
+        const data = await response.json();
+        setCurrentUserId(data.id);
+
+      } catch (error) {
+        ToastAndroid.show(`Error fetching profile user: ${error.message}`, ToastAndroid.SHORT);
+      }
+    };
+
+    if (token) {
+      fetchUserProfile();
+    }
+  }, [token]) // وابستگی به token
+
+  useEffect(() => {
+    let stompClient: any = null; // Define stompClient in the effect scope
+
+    const initializeWebSocket = async () => {
+      const token = await AsyncStorage.getItem('Token'); // Fetch the token
+      if (token) {
+        console.log('errror')
+        stompClient = connectWebSocket(token, (data) => {
+          console.log('Received data:', data);
+
+          if ('messageId' in data) {
+            if (data.fromUser === userId) {
+              const newMessage = {messageId: data.messageId, fromUser: data.fromUser, toUser: data.toUser, content: data.content, date: data.date, messageStatus: 
+                data.messageStatus, type: data.type 
+              };
+              setMessages((prevMessages) => [...prevMessages, newMessage]);
+            }            // Handle MessageDto
+            sendNotification('پیام جدید', `${data.fromUser}: ${data.content}`);
+            incrementBadge
+          } else if ('from' in data) {
+            // Handle NotificationRelationDto
+            sendNotification('اعلان جدید', `From: ${data.from} To: ${data.to}`);
+            incrementBadge2
+          }
+        });
+      }
+
+    };
+
+    initializeWebSocket(); // Call the async function
+
+    return () => {
+      if (stompClient) {
+        stompClient.deactivate(); // Close WebSocket connection
+        console.log('WebSocket connection closed.');
+      }
+    };
+  }, [])
+
   // دریافت پروفایل و پیام‌ها
   useEffect(() => {
-      if (!token) return;
-  
-      const fetchProfileData = async () => {
-        try {
-          const response = await axios.get(`https://camionet.org/v1/get-user/${userId}`, {
-            headers: {
-              accept: '*/*',
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          setProfile(response.data);
-        } catch (error) {
-            ToastAndroid.show(`Error fetching profile: ${error.message}`, ToastAndroid.SHORT);
-        
-        }
-      };
-  
-      const fetchMessages = async () => {
-        try {
-          const response = await axios.get(`https://camionet.org/message/get-new-messages/${userId}?offset=0&limit=30`, {
-            headers: {
-              accept: '*/*',
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          setMessages(response.data.reverse()); 
-        } catch (error) {
-            ToastAndroid.show(`Error fetching messages: ${error.message}`, ToastAndroid.SHORT);
-         
-        } finally {
-          setLoading(false);
-          setTimeout(() => {
-            scrollViewRef.current?.scrollToEnd({ animated: true });
-          }, 100);
-        }
-      };
-  
-      if (token && userId) {
-        fetchProfileData();
-        fetchMessages();
+    if (!token) return;
+
+    const fetchProfileData = async () => {
+      try {
+        const response = await axios.get(`https://camionet.org/v1/get-user/${userId}`, {
+          headers: {
+            accept: '*/*',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setProfile(response.data);
+      } catch (error) {
+        ToastAndroid.show(`Error fetching profile: ${error.message}`, ToastAndroid.SHORT);
+
       }
-    }, [token, userId]) // وابستگی به token و userId
- 
-  
+    };
+
+    const fetchMessages = async () => {
+      try {
+        const response = await axios.get(`https://camionet.org/message/get-new-messages/${userId}?offset=0&limit=30`, {
+          headers: {
+            accept: '*/*',
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setMessages(response.data.reverse());
+      } catch (error) {
+        ToastAndroid.show(`Error fetching messages: ${error.message}`, ToastAndroid.SHORT);
+
+      } finally {
+        setLoading(false);
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    };
+
+    if (token && userId) {
+      fetchProfileData();
+      fetchMessages();
+    }
+  }, [token, userId]) // وابستگی به token و userId
+
+
 
   const sendMessage = async () => {
-    if (newMessage.trim() === "") return; 
+    if (newMessage.trim() === "") return;
 
     try {
       const response = await axios.post(
@@ -140,27 +179,27 @@ export default function ChatScreen({ route, navigation }) {
       );
 
       const newSentMessage = {
-        fromUser: currentUserId, 
+        fromUser: currentUserId,
         content: newMessage,
         messageId: response.data.messageId,
         date: Date.now(),
       };
       setMessages((prevMessages) => [...prevMessages, newSentMessage]);
-      setNewMessage(""); 
+      setNewMessage("");
 
       setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true }); 
+        scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
 
     } catch (error) {
-        ToastAndroid.show(`Error: ${error.message}`, ToastAndroid.SHORT);
-     
+      ToastAndroid.show(`Error: ${error.message}`, ToastAndroid.SHORT);
+
     }
   };
 
   const formatDateTime = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); 
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const handleScroll = ({ nativeEvent }) => {
@@ -172,7 +211,7 @@ export default function ChatScreen({ route, navigation }) {
     return <ActivityIndicator size="large" color="#4CAF50" />;
   }
 
-  const isDarkMode = colorScheme === 'dark'; 
+  const isDarkMode = colorScheme === 'dark';
 
   return (
     <SafeAreaView style={[styles.container, isDarkMode ? styles.darkContainer : styles.lightContainer]}>
@@ -187,9 +226,9 @@ export default function ChatScreen({ route, navigation }) {
       )}
 
       <ScrollView
-        ref={scrollViewRef} 
+        ref={scrollViewRef}
         contentContainerStyle={styles.messagesContainer}
-        onScroll={handleScroll} 
+        onScroll={handleScroll}
         onContentSizeChange={() => isAtBottom && scrollViewRef.current?.scrollToEnd({ animated: true })}
       >
         {messages.map((message, index) => (
@@ -247,7 +286,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
-  profileHeader_dark:{
+  profileHeader_dark: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
@@ -268,7 +307,7 @@ const styles = StyleSheet.create({
   userName_dark: {
     fontSize: 18,
     fontWeight: 'bold',
-    color:'#fff'
+    color: '#fff'
   },
   messagesContainer: {
     padding: 10,

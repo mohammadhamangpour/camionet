@@ -3,10 +3,14 @@ import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator, Sty
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { connectWebSocket, sendNotification } from '../utils/Websocket';
+import { useBadge } from './context/BadgeContext';
 
 export default function RelationRequests({ navigation }) {
+  const badgeManager = useBadge();
   const [relations, setRelations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [messageCount, setMessageCount] = useState(0);
   const [token, setToken] = useState<string | null>(null);
   const [profiles, setProfiles] = useState({}); // برای ذخیره اطلاعات پروفایل کاربران
   const colorScheme = useColorScheme(); // برای بررسی حالت دارک مود یا لایت مود
@@ -55,6 +59,39 @@ export default function RelationRequests({ navigation }) {
       fetchToken();
     }, []) // آرایه وابستگی خالی برای یکبار اجرا هنگام بازگشت به صفحه
  
+    useEffect(() => {
+      let stompClient: any = null; // Define stompClient in the effect scope
+  
+      const initializeWebSocket = async () => {
+        const token = await AsyncStorage.getItem('Token'); // Fetch the token
+        if (token) {
+          console.log('errror')
+          stompClient = connectWebSocket(token, (data) => {
+            console.log('Received data:', data);
+  
+            if ('messageId' in data) {
+              // Handle MessageDto
+              badgeManager.increment();
+              setMessageCount(badgeManager.getCount());
+              sendNotification('پیام جدید', `${data.fromUser}: ${data.content}`);
+            } else if ('from' in data) {
+              // Handle NotificationRelationDto
+              sendNotification('اعلان جدید', `From: ${data.from} To: ${data.to}`);
+            }
+          });
+        }
+  
+      };
+      setMessageCount(badgeManager.getCount());
+      initializeWebSocket(); // Call the async function
+  
+      return () => {
+        if (stompClient) {
+          stompClient.deactivate(); // Close WebSocket connection
+          console.log('WebSocket connection closed.');
+        }
+      };
+    }, [])
   
   // دریافت لیست درخواست‌ها
  useEffect(() => {
@@ -184,12 +221,31 @@ export default function RelationRequests({ navigation }) {
     fixedMenu: {
       flexDirection: 'row',
       justifyContent: 'space-around',
-      backgroundColor: isDarkMode ? '#000' : '#333',
+      backgroundColor: isDarkMode ? '#323232' : '#333',
       paddingVertical: 10,
       position: 'absolute',
       bottom: 0,
       width: windowWidth, // عرض منو بر اساس اندازه دستگاه
     },
+    badge: {
+      position: 'absolute',
+      top: -5,
+      right: -10,
+      backgroundColor: '#1eab02',
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
+      borderBottomRightRadius: 10,
+      width: 16,
+      height: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1,
+  },
+    badgeText: {
+      color: '#fff',
+      fontSize: 12,
+      fontWeight: 'bold',
+  },
     menuItem: {
       alignItems: 'center',
     },
@@ -248,13 +304,21 @@ export default function RelationRequests({ navigation }) {
           <Icon name="home" style={styles.icon} />
           <Text style={styles.menuText}>خانه</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('ChatList')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => {navigation.navigate('ChatList')
+          badgeManager.reset();
+          setMessageCount(0);
+        }}>
           <Icon name="envelope" style={styles.icon} />
+          {messageCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{messageCount > 9 ? '+9' : messageCount}</Text>
+            </View>
+          )}
           <Text style={styles.menuText}>پیام</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('RelationRequests')}>
           <Icon name="bell" style={styles.icon} />
-          <Text style={styles.menuText}>اعلان‌ها</Text>
+          <Text style={styles.menuText}>اعلان‌</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('UserProfile')}>
           <Icon name="user" style={styles.icon} />

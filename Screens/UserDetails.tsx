@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Alert, useColorScheme, BackHandler, I18nManager } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { View, Text, Image, StyleSheet, ScrollView, Dimensions, TouchableOpacity, Alert, useColorScheme, BackHandler, I18nManager, ImageBackground } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios'; // افزودن axios برای ارسال درخواست
 
@@ -25,11 +26,16 @@ interface DestinationLocation {
 
 interface FormattedUserData {
   id: string;
+  name: string;
   profilePicture: string;
   car: string;
   kind: string;
   fromCity: string;
+  fromProvince: string;
+  fromLocality: string;
   destinationCities: string;
+  destProvicne: string;
+  destLocality: string;
   keywords: string;
 }
 
@@ -123,20 +129,22 @@ const UserDetails: React.FC<UserDetailsProps> = ({ route, navigation }) => {
 
   return (
     <ScrollView contentContainerStyle={[styles.container, isDarkMode && styles.darkContainer]}>
-      <Image source={{ uri: user.profilePicture }} style={styles.profileImage} />
-
+      {/* <Image source={{ uri: user.profilePicture }} style={styles.profileImage} /> */}
+      <ImageBackground source={{uri: user.profilePicture}} style={styles.profileImage}>
+          <Text  style={styles.userName}>{user.name}</Text>
+      </ImageBackground>
       <View style={styles.infoContainer}>
         <Text style={[styles.carText, isDarkMode && styles.darkText]}>ماشین: {user.car}</Text>
         
         <View style={[styles.tableContainer, isDarkMode && styles.darkTable]}>
           <View style={styles.column}>
             <Text style={[styles.header, isDarkMode && styles.darkHeader]}>مبدا</Text>
-            <Text style={[styles.cell, isDarkMode && styles.darkText]}>{user.fromCity}</Text>
+            <Text style={[styles.cell, isDarkMode && styles.darkText]}>{user.fromCity}, {user.fromLocality}</Text>
           </View>
 
           <View style={styles.column}>
             <Text style={[styles.header, isDarkMode && styles.darkHeader]}>مقصد</Text>
-            <Text style={[styles.cell, isDarkMode && styles.darkText]}>{user.destinationCities}</Text>
+            <Text style={[styles.cell, isDarkMode && styles.darkText]}>{user.destinationCities}, {user.destLocality.length }</Text>
           </View>
         </View>
 
@@ -174,6 +182,15 @@ const styles = StyleSheet.create({
   infoContainer: {
     width: '100%',
     alignItems: 'center',
+  },
+  userName: {
+    color: 'white',
+    fontWeight: 'bold',
+    borderBottomLeftRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    padding: 10,
+    fontSize: 18,
+    alignSelf: 'flex-start'
   },
   carText: {
     fontSize: 28, // افزایش سایز فونت

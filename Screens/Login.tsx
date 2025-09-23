@@ -132,7 +132,7 @@ useEffect(() => {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1}}>
       <View style={[styles.container, isDarkMode && styles.darkMode]}>
         <View style={[styles.loginContainer, isDarkMode && styles.darkLoginContainer]}>
           <Image source={require('../assets/logo.png')} style={styles.logo} />

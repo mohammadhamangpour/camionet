@@ -1,5 +1,5 @@
 {
-  "name": "comion",
+  "name": "camionet",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -39,7 +39,8 @@
     "react-native-screens": "^3.29.0",
     "react-native-svg": "^15.5.0",
     "react-native-vector-icons": "^10.1.0",
-    "sockjs-client": "^1.6.1"
+    "sockjs-client": "^1.6.1",
+    "text-encoding-polyfill": "^0.6.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

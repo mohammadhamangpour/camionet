@@ -29,46 +29,49 @@ const connectWebSocket = (
   token: string,
   onMessage: (data: MessageDto | NotificationRelationDto) => void
 ) => {
-  try{
+  try {
 
-console.log('222')
-let socket;
-try {
-  socket = new SockJS('https://camionet.org/ws'); // try catch here
-} catch (sockJsError) {
-  console.error("Error creating SockJS:", sockJsError);
-  return; // مهم: برای جلوگیری از ادامه اجرای کد، return کنید
-}
- 
-  const stompClient = new Client({
-    webSocketFactory: () => socket,
-    connectHeaders: { Authorization: `Bearer ${token}` },
-  });
+    console.log('Connecting to WebSocket...');
+    let socket;
+    try {
+      socket = new SockJS('https://camionet.org/ws'); // try catch here
+    } catch (sockJsError) {
+      console.error("Error creating SockJS:", sockJsError);
+      return null; // مهم: برای جلوگیری از ادامه اجرای کد، return کنید
+    }
 
-  // ***تنظیم توابع onConnect و onStompError *قبل* از activate***
-  stompClient.onConnect = () => {
-    console.log('به WebSocket متصل شد.'); // پیام موفقیت
-    // مشترک شدن در یک مقصد (destination) برای دریافت پیام‌ها
-    stompClient.subscribe('/user/queue/message', (message) => {
-      const data = JSON.parse(message.body);
-      if (isMessageDto(data) || isNotificationRelationDto(data)) {
-        onMessage(data);
-      } else {
-        console.warn('فرمت پیام نامعتبر دریافت شد:', data);
-      }
+    const stompClient = new Client({
+      webSocketFactory: () => socket,
+      connectHeaders: { Authorization: `Bearer ${token}` },
     });
-  };
 
-  stompClient.onStompError = (error) => {
-    console.error('خطا در WebSocket:', error); // پیام خطا
-    // نمایش خطا به کاربر (اختیاری)
-    // alert('مشکل در اتصال به سرور.');
-  };
+    // ***تنظیم توابع onConnect و onStompError *قبل* از activate***
+    stompClient.onConnect = () => {
+      console.log('Connected to websocket.'); // پیام موفقیت
+      // مشترک شدن در یک مقصد (destination) برای دریافت پیام‌ها
+      stompClient.subscribe('/user/queue/message', (message) => {
+        const data = JSON.parse(message.body);
+        if (isMessageDto(data) || isNotificationRelationDto(data)) {
+          onMessage(data);
+          console.log('reciving correct format message.')
+        } else {
+          console.warn('فرمت پیام نامعتبر دریافت شد:', data);
+        }
+      });
+    };
 
-  stompClient.activate(); // فعال‌سازی اتصال
-}catch(error){
-  console.log(error)
-}
+    stompClient.onStompError = (error) => {
+      console.error('خطا در WebSocket:', error); // پیام خطا
+      // نمایش خطا به کاربر (اختیاری)
+      // alert('مشکل در اتصال به سرور.');
+    };
+
+    stompClient.activate(); // فعال‌سازی اتصال
+    return stompClient;
+  } catch (error) {
+    console.log(error)
+    return null;
+  }
 };
 
 /**
@@ -79,7 +82,7 @@ const isMessageDto = (data: any): data is MessageDto => {
     typeof data.messageId === 'string' &&
     typeof data.fromUser === 'string' &&
     typeof data.toUser === 'string' &&
-    typeof data.room === 'string' &&
+    // typeof data.room === 'string' &&
     typeof data.content === 'string' &&
     typeof data.date === 'number' &&
     ['SENT', 'RECEIVED', 'SEEN'].includes(data.messageStatus) &&
@@ -102,6 +105,16 @@ const isNotificationRelationDto = (data: any): data is NotificationRelationDto =
  * Send a notification to the device.
  */
 const sendNotification = (title: string, message: string) => {
+  const UUID: string = Date.now().toString();
+  PushNotification.createChannel(
+    {
+      UUID,
+      title, // Visible name
+      message,
+      importance: 4,
+      vibrate: true,
+    });
+    
   PushNotification.localNotification({
     title,
     message,

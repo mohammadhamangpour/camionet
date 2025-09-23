@@ -203,12 +203,12 @@ export default function Driver_register({ navigation }) {
 
               <View style={styles.inlineImageContainer}>
                 <TouchableOpacity onPress={() => pickImage(setLicenseImage)} style={styles.uploadButtonInline}>
-                  <Text style={styles.uploadButtonText}>آپلود عکس گواهینامه</Text>
+                  <Text style={styles.uploadButtonText}>عکس گواهینامه</Text>
                   {licenseImage && <Image source={{ uri: licenseImage.uri }} style={styles.uploadedImage} />}
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => pickImage(setCarImage)} style={styles.uploadButtonInline}>
-                  <Text style={styles.uploadButtonText}>آپلود عکس کارت ماشین</Text>
+                  <Text style={styles.uploadButtonText}>عکس کارت ماشین</Text>
                   {carImage && <Image source={{ uri: carImage.uri }} style={styles.uploadedImage} />}
                 </TouchableOpacity>
               </View>
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
   },
   uploadButtonText: {
     color: '#fff',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   uploadedImage: {
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   registerButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#15a100',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
